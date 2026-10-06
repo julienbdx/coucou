@@ -180,6 +180,32 @@ index ac0ac7b..1c53c17 100644
 -  const label = task.id === "integration_claude" ? "VS Code" : task.name;
 +  const label = task.id === "integration_claude" ? "Claude Code" : task.name;
    const canvas = createMiniBot(task, 24);
+diff --git a/NotchBuddy/Sources/App/ClaudePlanCardView.swift b/NotchBuddy/Sources/App/ClaudePlanCardView.swift
+index 48cde82..2c7bb28 100644
+--- a/NotchBuddy/Sources/App/ClaudePlanCardView.swift
++++ b/NotchBuddy/Sources/App/ClaudePlanCardView.swift
+@@ -79,3 +79,3 @@ private struct GaugeRowView: View {
+                 .foregroundColor(Color(hex: "#6B7079"))
+-                .frame(width: 40, alignment: .leading)
++                .frame(width: 52, alignment: .leading)
+             if let w = window {
+@@ -83,3 +83,3 @@ private struct GaugeRowView: View {
+                 let accent = Color(hex: ClaudePlanGauge.color(for: pct))
+-                // Fixed-width bar (~50pt)
++                // Fixed-width bar (~90pt)
+                 ZStack(alignment: .leading) {
+@@ -87,8 +87,8 @@ private struct GaugeRowView: View {
+                         .fill(Color.white.opacity(0.08))
+-                        .frame(width: 50, height: 4)
++                        .frame(width: 90, height: 4)
+                     Capsule()
+                         .fill(accent)
+-                        .frame(width: max(0, 50 * CGFloat(pct / 100)), height: 4)
++                        .frame(width: max(0, 90 * CGFloat(pct / 100)), height: 4)
+                 }
+-                .frame(width: 50, height: 4)
++                .frame(width: 90, height: 4)
+                 Text("\(Int(pct.rounded()))%")
 ```
 
 ## Réappliquer sur la prochaine version
@@ -202,6 +228,7 @@ motifs, les numéros de ligne bougent) :
 6. `OverviewView` : supprimer le bloc `CardBackground(wash: nil) { AgentPillsView(state: state) }` de droite et remplacer `.frame(width: 322)` par `.frame(maxWidth: .infinity)` sur la carte de gauche.
 7. Renommage : `PillCatalog.swift` (`name: "Claude Code"`), le libellé `displayName` d'`IslandViewContent.swift`, et les chaînes `"VS Code"` restantes liées à `integration_claude` (`MochiActivityState.swift`, `CoucouWidgets.swift`, `windows/src/**`).
 8. `IntegrationCardView` : `String(localized: "Connected · loading…")` → `String(localized: "Connected")`, et `if task.id == "integration_claude" {` (bouton « Open Visual Studio Code ») → `if false && task.id == "integration_claude" {`.
+9. `ClaudePlanCardView.swift` (`GaugeRowView`) : barre `50` → `90` (3 occurrences + le commentaire), colonne du libellé `.frame(width: 40` → `.frame(width: 52`.
 
 Avant d'appliquer, vérifier que l'amont n'a pas déjà traité le sujet :
 `grep -n 'rawAgent == "claude"\|raw != "claude"' NotchBuddy/Sources/App/HookServer.swift`.
