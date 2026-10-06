@@ -63,7 +63,7 @@ struct MochiActivityState: Codable, Hashable, Sendable {
     }
 
     static let placeholder = MochiActivityState(
-        pillId: "integration_claude", agent: "VS Code", color: "#4A86E8",
+        pillId: "integration_claude", agent: "Claude Code", color: "#4A86E8",
         state: "working", statusText: "working · 3/7", tone: "working",
         stepIndex: 2, stepCount: 7, others: 1)
 }
