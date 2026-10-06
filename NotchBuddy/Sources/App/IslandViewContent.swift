@@ -139,12 +139,7 @@ struct OverviewView: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
-            .frame(width: 322)
-
-            // Right card: agent pills
-            CardBackground(wash: nil) {
-                AgentPillsView(state: state)
-            }
+            .frame(maxWidth: .infinity)
         }
         .onChange(of: state.focusId) { _, new in
             showingN8nDetail = false
