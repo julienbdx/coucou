@@ -20,7 +20,7 @@ Contenu : routage + 2 gardes dans `HookServer.swift`, les 2 installeurs de hooks
 les 2 copies du `nb-hook.py` embarqué (la branche `--ask` ignorait `--agent`), puis le renommage
 Mac et Windows. Il supprime aussi la carte de droite (liste des pills) de `OverviewView`, dans
 `IslandViewContent.swift` : la carte de gauche passe de `.frame(width: 322)` à `.frame(maxWidth: .infinity)`
-(`AgentPillsView` reste, inutilisé ; `docs/SPEC.md` et `windows/` ne sont pas mis à jour sur ce point). Le diff contient aussi les 4 fichiers de renommage ; `Localizable.xcstrings` n'en fait pas partie.
+(`AgentPillsView` reste, inutilisé ; `docs/SPEC.md` et `windows/` ne sont pas mis à jour sur ce point). Dans la carte d'intégration (`IntegrationCardView`), le sous-titre « Connected · loading… » devient « Connected », et le bouton « Open Visual Studio Code » de la pill Claude Code est masqué (`if false && …`). Le diff contient aussi les 4 fichiers de renommage ; `Localizable.xcstrings` n'en fait pas partie.
 
 ```diff
 diff --git a/NotchBuddy/Sources/App/HookServer.swift b/NotchBuddy/Sources/App/HookServer.swift
@@ -99,6 +99,16 @@ index fe623cf..5bddd15 100644
 -            }
 +            .frame(maxWidth: .infinity)
          }
+@@ -1787,3 +1782,3 @@ struct IntegrationCardView: View {
+             }
+-            return String(localized: "Connected · loading…")
++            return String(localized: "Connected")
+         } else {
+@@ -1921,3 +1916,3 @@ struct IntegrationCardView: View {
+                 HStack(spacing: 8) {
+-                    if task.id == "integration_claude" {
++                    if false && task.id == "integration_claude" {
+                         Button("Open Visual Studio Code") { openVSCode() }
 @@ -3738,5 +3733,5 @@ struct AgentPill: View {
  
 -    // VS Code pill always shows "VS Code" label regardless of active project name
@@ -191,6 +201,7 @@ motifs, les numéros de ligne bougent) :
 5. Les 2 copies Python (`def main():`, après `payload['coucou_kind'] = 'ask_user_question'`) : lire `--agent` dans `sys.argv` et faire `payload.setdefault('coucou_agent', …)`
 6. `OverviewView` : supprimer le bloc `CardBackground(wash: nil) { AgentPillsView(state: state) }` de droite et remplacer `.frame(width: 322)` par `.frame(maxWidth: .infinity)` sur la carte de gauche.
 7. Renommage : `PillCatalog.swift` (`name: "Claude Code"`), le libellé `displayName` d'`IslandViewContent.swift`, et les chaînes `"VS Code"` restantes liées à `integration_claude` (`MochiActivityState.swift`, `CoucouWidgets.swift`, `windows/src/**`).
+8. `IntegrationCardView` : `String(localized: "Connected · loading…")` → `String(localized: "Connected")`, et `if task.id == "integration_claude" {` (bouton « Open Visual Studio Code ») → `if false && task.id == "integration_claude" {`.
 
 Avant d'appliquer, vérifier que l'amont n'a pas déjà traité le sujet :
 `grep -n 'rawAgent == "claude"\|raw != "claude"' NotchBuddy/Sources/App/HookServer.swift`.
