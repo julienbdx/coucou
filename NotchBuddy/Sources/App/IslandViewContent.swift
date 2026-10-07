@@ -3736,9 +3736,9 @@ struct AgentPill: View {
 
     private var effectiveColor: String { task.color }
 
-    // VS Code pill always shows "VS Code" label regardless of active project name
+    // Claude Code pill always shows "Claude Code" label regardless of active project name
     private var displayName: String {
-        task.id == "integration_claude" ? "VS Code" : task.name
+        task.id == "integration_claude" ? "Claude Code" : task.name
     }
 
     var body: some View {
