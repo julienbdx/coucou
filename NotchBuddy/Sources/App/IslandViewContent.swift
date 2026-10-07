@@ -41,6 +41,9 @@ struct OverviewView: View {
     var agent: AgentTask? { state.focusTask }
 
     var body: some View {
+        GeometryReader { geo in
+        // Buddy card 75 %, pills card 25 % (one column)
+        let available = geo.size.width - 10
         HStack(spacing: 10) {
             // Left card: title row + ticker below + ↗ button overlay
             ZStack(alignment: .topLeading) {
@@ -139,12 +142,15 @@ struct OverviewView: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
-            .frame(width: 322)
+            .frame(width: available * 0.75)
 
             // Right card: agent pills
             CardBackground(wash: nil) {
                 AgentPillsView(state: state)
             }
+            .frame(width: available * 0.25)
+        }
+        .frame(width: geo.size.width, height: geo.size.height)
         }
         .onChange(of: state.focusId) { _, new in
             showingN8nDetail = false
@@ -3685,7 +3691,6 @@ struct AgentPillsView: View {
     }
 
     private let columns = [
-        GridItem(.flexible(), spacing: 4),
         GridItem(.flexible(), spacing: 4)
     ]
 
