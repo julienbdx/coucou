@@ -1785,7 +1785,7 @@ struct IntegrationCardView: View {
                 }
                 return String(localized: "Key configured · \(model)")
             }
-            return String(localized: "Connected · loading…")
+            return String(localized: "Connected")
         } else {
             if isHooks { return String(localized: "Hooks not installed") }
             if isAI {
@@ -1919,7 +1919,7 @@ struct IntegrationCardView: View {
                 .padding(.top, 2)
 
                 HStack(spacing: 8) {
-                    if task.id == "integration_claude" {
+                    if false && task.id == "integration_claude" {
                         Button("Open Visual Studio Code") { openVSCode() }
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: task.color).opacity(0.7))
