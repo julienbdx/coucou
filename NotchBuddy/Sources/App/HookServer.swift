@@ -354,7 +354,7 @@ final class HookServer: @unchecked Sendable {
         // • "codex" → agent_codex (GitHub build only: workspace pill, approvals in the notch)
         // • other valid coucou_agent → external pill (fire-and-forget, no approval card)
         // • Cursor bundle ID → agent_cursor
-        // • VS Code → integration_claude
+        // • VS Code, or --agent claude from any terminal → integration_claude
         #if !APPSTORE
         let isCodexEvent = rawAgent == "codex"
         #else
@@ -371,7 +371,7 @@ final class HookServer: @unchecked Sendable {
         } else if isCursorEditor {
             agentId = "agent_cursor"
             isExternalAgent = false
-        } else if isVSCodeEditor {
+        } else if isVSCodeEditor || rawAgent == "claude" {
             agentId = "integration_claude"
             isExternalAgent = false
         } else {
@@ -555,7 +555,8 @@ final class HookServer: @unchecked Sendable {
     // MARK: - Agent validation + dynamic pill
 
     /// Validates a coucou_agent name: lowercase, digits and hyphens, 1–24 chars.
-    /// "claude" is reserved and rejected so it cannot impersonate the Claude Code pill.
+    /// "claude" is reserved and rejected as an external pill: it is routed to the Claude Code
+    /// pill (integration_claude) by the host checks instead, whatever terminal runs the agent.
     /// Returns the name unchanged if valid, nil otherwise.
     private static func validateAgent(_ raw: String) -> String? {
         guard !raw.isEmpty, raw.count <= 24, raw != "claude" else { return nil }
@@ -676,7 +677,7 @@ final class HookServer: @unchecked Sendable {
         } else {
             pillId = "integration_claude"
         }
-        guard isCodexRequest || isCopilotRequest || isMuseRequest || isCursorEditor || isVSCodeEditor else {
+        guard isCodexRequest || isCopilotRequest || isMuseRequest || isCursorEditor || isVSCodeEditor || rawAgent == "claude" else {
             Task.detached { [weak self] in
                 self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
                 close(fd)
@@ -846,7 +847,7 @@ final class HookServer: @unchecked Sendable {
         } else {
             pillId = "integration_claude"
         }
-        guard isCodexRequest || isCursorEditor || isVSCodeEditor else {
+        guard isCodexRequest || isCursorEditor || isVSCodeEditor || rawAgent == "claude" else {
             Task.detached { [weak self] in
                 self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
                 close(fd)
@@ -1231,14 +1232,14 @@ final class HookServer: @unchecked Sendable {
         for (event, timeout) in events {
             var existing = hooks[event] as? [[String: Any]] ?? []
             existing.removeAll { ($0["hooks"] as? [[String: Any]])?.contains { ($0["command"] as? String)?.contains("NotchBuddy") == true || ($0["command"] as? String)?.contains("coucou") == true } ?? false }
-            existing.append(["hooks": [["type": "command", "command": quotedCmd, "timeout": timeout]]])
+            existing.append(["hooks": [["type": "command", "command": "\(quotedCmd) --agent claude", "timeout": timeout]]])
             hooks[event] = existing
         }
         // Dedicated AskUserQuestion PreToolUse hook (Claude Code 2.1.85+, timeout 130s)
         var preToolUse = hooks["PreToolUse"] as? [[String: Any]] ?? []
         preToolUse.append([
             "matcher": "AskUserQuestion",
-            "hooks": [["type": "command", "command": "\(quotedCmd) --ask", "timeout": 130]],
+            "hooks": [["type": "command", "command": "\(quotedCmd) --ask --agent claude", "timeout": 130]],
         ])
         hooks["PreToolUse"] = preToolUse
         settings["hooks"] = hooks
@@ -1482,14 +1483,14 @@ final class HookServer: @unchecked Sendable {
                 ($0["command"] as? String)?.contains("coucou") == true ||
                 ($0["command"] as? String)?.contains("NotchBuddy") == true
             } ?? false }
-            existing.append(["hooks": [["type": "command", "command": quotedCmd, "timeout": timeout]]])
+            existing.append(["hooks": [["type": "command", "command": "\(quotedCmd) --agent claude", "timeout": timeout]]])
             hooks[event] = existing
         }
         // Dedicated AskUserQuestion PreToolUse hook (Claude Code 2.1.85+, timeout 130s)
         var preToolUse = hooks["PreToolUse"] as? [[String: Any]] ?? []
         preToolUse.append([
             "matcher": "AskUserQuestion",
-            "hooks": [["type": "command", "command": "\(quotedCmd) --ask", "timeout": 130]],
+            "hooks": [["type": "command", "command": "\(quotedCmd) --ask --agent claude", "timeout": 130]],
         ])
         hooks["PreToolUse"] = preToolUse
         settings["hooks"] = hooks
@@ -2552,6 +2553,9 @@ def main():
         if tool != 'AskUserQuestion':
             return  # Not an AskUserQuestion invocation — exit cleanly (no output)
         payload['coucou_kind'] = 'ask_user_question'
+        _args = sys.argv[1:]
+        if '--agent' in _args and _args.index('--agent') + 1 < len(_args):
+            payload.setdefault('coucou_agent', _args[_args.index('--agent') + 1])
         env = os.environ
         payload.setdefault('term_program', env.get('TERM_PROGRAM', ''))
         payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
@@ -2844,6 +2848,9 @@ def main():
         if tool != 'AskUserQuestion':
             return  # Not an AskUserQuestion invocation — exit cleanly (no output)
         payload['coucou_kind'] = 'ask_user_question'
+        _args = sys.argv[1:]
+        if '--agent' in _args and _args.index('--agent') + 1 < len(_args):
+            payload.setdefault('coucou_agent', _args[_args.index('--agent') + 1])
         env = os.environ
         payload.setdefault('term_program', env.get('TERM_PROGRAM', ''))
         payload.setdefault('iterm_session_id', env.get('ITERM_SESSION_ID', ''))
